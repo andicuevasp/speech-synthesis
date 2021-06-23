@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Speech Synthesis</title>
+  <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="voiceinator">
+
+      <h1>The Voiceinator 5000</h1>
+
+      <select name="voice" id="voices">
+        <option value="">Select A Voice</option>
+      </select>
+
+      <label for="rate">Rate:</label>
+      <input name="rate" type="range" min="0" max="3" value="1" step="0.1">
+
+      <label for="pitch">Pitch:</label>
+
+      <input name="pitch" type="range" min="0" max="2" step="0.1">
+      <textarea name="text">Hello! I love JavaScript 👍</textarea>
+      <button id="stop">Stop!</button>
+      <button id="speak">Speak</button>
+
+    </div>
+
+<script>
+  const msg = new SpeechSynthesisUtterance();
+  let voices = [];
+  const voicesDropdown = document.querySelector('[name="voice"]');
+  const options = document.querySelectorAll('[type="range"], [name="text"]');
+  const speakButton = document.querySelector('#speak');
+  const stopButton = document.querySelector('#stop');
+  //setting the default message of the text area
+  msg.text = document.querySelector('[name="text"]').value;
+
+  //function that will populate voices array
+  function populateVoices() {
+    voices = this.getVoices();
+    //when you console log voices you get all of the voices available in Mac so now we need
+    //to loop over them using map and add them to the dropdown menu 
+    voicesDropdown.innerHTML = voices
+        // this filter is i wanted to filter out just a specific language
+        //.filter(voice => voice.lang.includes("en"))
+        .map(voice => `<option value ="${voice.name}">${voice.name} (${voice.lang})</option>`)
+        .join("");
+  };
+
+  // this is the function that will allow us to choose a voice
+  function setVoice() {
+    // voices is an array,so we need to loop over every single voice so that we find
+    // the one that matches the name attribute with the selected dropdown option
+    msg.voice = voices.find(voice => voice.name === this.value);
+    toggle();
+  };
+
+// this function is so that everytime you change the dropdown voice is stops talking (it interrupts itelf) 
+//and starts up with the new voice 
+  function toggle(startOver = true) {
+    speechSynthesis.cancel();
+    if(startOver) {
+    speechSynthesis.speak(msg);
+    }
+  };
+
+  //this is the function set the options for range, pitch and text area
+  function setOption() {
+    // the first this.name is what property changed (pitch, range or text) 
+    //and what value it changed to (0.3, or whatever new text is written for example)
+    console.log(this.name, this.value);
+    //this sets the message to the property was changed  and to what value
+    msg[this.name] = this.value;
+    toggle();
+  }
+
+
+
+  //this global variable will listen to voices changed to populate our voices
+  speechSynthesis.addEventListener("voiceschanged",populateVoices)
+  //this will listen for a change in the dropdown menu and run the set voice function
+  voicesDropdown.addEventListener("change",setVoice);
+  // this will listen for a change in the pitch,range  and text area options
+  options.forEach(option => option.addEventListener("change",setOption));
+  // listen for click on speak button using toggle function so it starts up
+  speakButton.addEventListener("click",toggle);
+  // listen for click on stop button so that it does the opposite of the toggle function
+  // and ends the function from running
+  stopButton.addEventListener("click",() => toggle(false))
+
+
+
+</script>
+
+</body>
+</html>
